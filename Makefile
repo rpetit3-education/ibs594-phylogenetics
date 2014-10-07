@@ -23,11 +23,6 @@ clustal: ;
 	make -C $(THIRD_PARTY)/clustalw-2.1
 	ln -s $(THIRD_PARTY)/clustalw-2.1/src/clustalw2 $(THIRD_PARTY_BIN)/clustalw2
 
-phylip: ;
-	tar -C $(THIRD_PARTY) -xzvf $(SRC)/phylip-3.696.tar.gz
-	make -C $(THIRD_PARTY)/phylip-3.696/src -f $(THIRD_PARTY)/phylip-3.696/src/Makefile.unx all
-	ln -s $(THIRD_PARTY)/phylip-3.696/src/dnapars $(THIRD_PARTY_BIN)/dnapars
-
 phyml: ;
 	unzip $(SRC)/PhyML-3.1.zip -d $(THIRD_PARTY)
 	ln -s $(THIRD_PARTY)/PhyML-3.1/PhyML-3.1_linux64 $(THIRD_PARTY_BIN)/phyml
@@ -44,9 +39,6 @@ mrbayes: ;
 	cd $(THIRD_PARTY)/mrbayes_3.2.2/src && ./configure --with-beagle=no && cd $(TOP_DIR)
 	make -C $(THIRD_PARTY)/mrbayes_3.2.2/src
 	ln -s $(THIRD_PARTY)/mrbayes_3.2.2/src/mb $(THIRD_PARTY_BIN)/mb
-	tar -C $(THIRD_PARTY) -xzvf $(SRC)/Tracer_v1.6.tar.gz
-	chmod 755 $(THIRD_PARTY)/Tracer_v1.6/bin/tracer
-	ln -s $(THIRD_PARTY)/Tracer_v1.6/bin/tracer $(THIRD_PARTY_BIN)/tracer
 
 jmodeltest: ;
 	tar -C $(THIRD_PARTY) -xzvf $(SRC)/jmodeltest-2.1.6-20140903.tar.gz
@@ -87,16 +79,9 @@ exercise-02: ;
 	# Align Sequences
 	$(THIRD_PARTY_BIN)/clustalw2 -INFILE=$(EXERCISE_02)/data/AllEscovopsis_ITS.fasta -OUTPUT=FASTA -OUTFILE=$(EXERCISE_02)/results/clustal_default.fasta
 	sh $(THIRD_PARTY_BIN)/convertFasta2Phylip.sh $(EXERCISE_02)/results/clustal_default.fasta > $(EXERCISE_02)/results/clustal_default.phylip
-	# Make Parsimony Tree
-	python $(BIN)/fasta2phylip.py $(EXERCISE_02)/results/clustal_default.fasta $(EXERCISE_02)/results/dnapars.phylip
-	echo $(EXERCISE_02)/results/dnapars.phylip > $(EXERCISE_02)/results/dnapars.config 
-	echo Y >> $(EXERCISE_02)/results/dnapars.config
-	$(THIRD_PARTY_BIN)/dnapars < $(EXERCISE_02)/results/dnapars.config > $(EXERCISE_02)/results/dnapars.out
-	mv outfile $(EXERCISE_02)/results/dnapars.outfile
-	mv outtree $(EXERCISE_02)/results/dnapars.outtree
 	# Predict Substitution Model
 	java -jar $(THIRD_PARTY_BIN)/jModelTest.jar -d $(EXERCISE_02)/results/clustal_default.fasta -g 4 -i -f -AIC -a -o $(EXERCISE_02)/results/jmodeltest.out 
-	# RAxML
+	# RAxML (Parsimony and ML tree)
 	$(THIRD_PARTY_BIN)/raxml -s $(EXERCISE_02)/results/clustal_default.phylip -m GTRGAMMAI -n R1 -w $(EXERCISE_02)/results -T 3 -p 123456
 	$(THIRD_PARTY_BIN)/raxml -s $(EXERCISE_02)/results/clustal_default.phylip -m GTRGAMMAI -n R2 -w $(EXERCISE_02)/results --no-bfgs -T 3 -b 123456 -p 123456 -N 200
 	$(THIRD_PARTY_BIN)/raxml -s $(EXERCISE_02)/results/clustal_default.phylip -m GTRGAMMAI -n raxml_final -w $(EXERCISE_02)/results -T 3 -f b -t $(EXERCISE_02)/results/RAxML_bestTree.R1 -z $(EXERCISE_02)/results/RAxML_bootstrap.R2 
